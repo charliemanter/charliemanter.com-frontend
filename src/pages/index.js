@@ -14,7 +14,7 @@ export default function Home() {
     setError(null);
 
     try {
-      const res = await fetch(`http://localhost:8000/analyze?username=${username}&time_class=${timeClass}`);
+      const res = await fetch(`https://chess-api.onrender.com/analyze?username=${username}&time_class=${timeClass}`);
       const data = await res.json();
 
       if (data.error) {

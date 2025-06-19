@@ -6,7 +6,7 @@ export default function SongMatch() {
   const [results, setResults] = useState([]);
 
   const findMatches = async () => {
-    const res = await fetch(`/api/songmatch?title=${title}&artist=${artist}`);
+    const res = await fetch(`https://api.charliemanter.com/songmatch?title=${title}&artist=${artist}`);
     const data = await res.json();
     setResults(data);
   };

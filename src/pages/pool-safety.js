@@ -1,33 +1,28 @@
 import { useEffect, useState } from 'react';
 
-type Status = {
-  safe: boolean;
-  resume_at: string | null;
-};
-
 export default function PoolSafety() {
-  const [status, setStatus] = useState<Status | null>(null);
+  const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState<string | null>(null);
+  const [error, setError] = useState(null);
+  const [countdown, setCountdown] = useState(null);
 
-  // Fetch latest lightning status
+  // Fetch the latest lightning status
   async function fetchStatus() {
     setLoading(true);
     setError(null);
     try {
       const res = await fetch('/api/safety/lightning-status');
       if (!res.ok) throw new Error(`Error ${res.status}`);
-      const data: Status = await res.json();
+      const data = await res.json();
       setStatus(data);
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   }
 
-  // Initial load and polling every minute
+  // Initial fetch and polling every minute
   useEffect(() => {
     fetchStatus();
     const interval = setInterval(fetchStatus, 60000);
@@ -43,16 +38,14 @@ export default function PoolSafety() {
     function updateCountdown() {
       const now = new Date();
       const resume = new Date(status.resume_at);
-      const diff = resume.getTime() - now.getTime();
+      const diff = resume - now;
       if (diff <= 0) {
         setCountdown('00:00');
       } else {
         const minutes = Math.floor(diff / 60000);
         const seconds = Math.floor((diff % 60000) / 1000);
         setCountdown(
-          `${minutes.toString().padStart(2, '0')}:${seconds
-            .toString()
-            .padStart(2, '0')}`
+          `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
         );
       }
     }
@@ -68,17 +61,13 @@ export default function PoolSafety() {
     <div className="max-w-md mx-auto p-4 space-y-4">
       <h1 className="text-2xl font-bold">Pool Lightning Safety</h1>
 
-      <div>
-        <p>
-          <strong>Status:</strong>{' '}
-          <span className={status?.safe ? 'text-green-600' : 'text-red-600'}>
-            {status?.safe ? 'SAFE to swim' : 'DO NOT SWIM'}
-          </span>
-        </p>
-        {!status?.safe && countdown && (
-          <p>All-clear in: {countdown}</p>
-        )}
-      </div>
+      <p>
+        <strong>Status:</strong>{' '}
+        <span className={status.safe ? 'text-green-600' : 'text-red-600'}>
+          {status.safe ? 'SAFE to swim' : 'DO NOT SWIM'}
+        </span>
+      </p>
+      {!status.safe && countdown && <p>All-clear in: {countdown}</p>}
 
       <button
         onClick={fetchStatus}

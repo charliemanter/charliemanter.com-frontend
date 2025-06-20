@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 export default function Home() {
-  const [username, setUsername] = useState('thunnu5');
+  const [username, setUsername] = useState(null);
   const [timeClass, setTimeClass] = useState('blitz');
   const [loading, setLoading] = useState(false);
   const [pieChart, setPieChart] = useState(null);

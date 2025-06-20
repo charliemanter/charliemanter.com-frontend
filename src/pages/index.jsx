@@ -31,7 +31,9 @@ export default function Home() {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
         }
+      `}</style>
 
+      <style jsx global>{`
         .emoji-link {
           font-size: 2rem;
           text-decoration: none;

@@ -58,6 +58,7 @@ export default function Home() {
           transform: scale(1.2);
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
           color: #0070f3;
+          background: yellow; /* 👈 easy to spot */
         }
 
         @keyframes typing {

@@ -49,15 +49,14 @@ export default function Home() {
         .emoji-link {
           font-size: 2.5rem;
           text-decoration: none;
-          color: inherit;
+          display: inline-block;
           cursor: pointer;
-          transition: transform 0.3s cubic-bezier(0.2, 1.5, 0.5, 1), color 0.3s ease;
+          transition: transform 0.3s cubic-bezier(0.2, 1.5, 0.5, 1), filter 0.3s ease;
         }
 
         .emoji-link:hover {
           transform: scale(1.5) rotate(5deg);
-          color: #ff4081;
-          text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
+          filter: hue-rotate(90deg) brightness(1.2) saturate(1.5);
         }
 
         @keyframes typing {

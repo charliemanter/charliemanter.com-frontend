@@ -8,13 +8,13 @@ export default function Home() {
 
         <div style={styles.buttonContainer}>
           <Link href="/chess-dash" passHref>
-            <a style={styles.button} aria-label="Go to Chess Dashboard">♟️</a>
+            <a className="emoji-link" aria-label="Go to Chess Dashboard">♟️</a>
           </Link>
           <Link href="/pool-safety" passHref>
-            <a style={styles.button} aria-label="Go to Pool Safety">🏊</a>
+            <a className="emoji-link" aria-label="Go to Pool Safety">🏊</a>
           </Link>
           <Link href="/songmatch" passHref>
-            <a style={styles.button} aria-label="Go to Song Match">🎵</a>
+            <a className="emoji-link" aria-label="Go to Song Match">🎵</a>
           </Link>
         </div>
       </div>
@@ -30,6 +30,17 @@ export default function Home() {
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+
+        .emoji-link {
+          font-size: 2rem;
+          text-decoration: none;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .emoji-link:hover {
+          transform: scale(1.2);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
       `}</style>
     </div>
@@ -60,9 +71,4 @@ const styles = {
     gap: '1.5rem',
     justifyContent: 'center',
   },
-  button: {
-    fontSize: '2rem',
-    textDecoration: 'none',
-    transition: 'transform 0.2s',
-  }
 };

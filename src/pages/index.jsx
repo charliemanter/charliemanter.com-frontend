@@ -49,14 +49,14 @@ export default function Home() {
         .emoji-link {
           font-size: 2.5rem;
           text-decoration: none;
-          transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
           color: inherit;
           cursor: pointer;
+          transition: transform 0.3s cubic-bezier(0.2, 1.5, 0.5, 1), color 0.3s ease;
         }
 
         .emoji-link:hover {
           transform: scale(1.5) rotate(5deg);
-          color: #ff4081; /* bright pink for pop */
+          color: #ff4081;
           text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
         }
 

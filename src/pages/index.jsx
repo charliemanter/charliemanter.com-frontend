@@ -8,13 +8,31 @@ export default function Home() {
 
         <div style={styles.buttonContainer}>
           <Link href="/chess-dash" passHref>
-            <a className="emoji-link" aria-label="Go to Chess Dashboard">♟️</a>
+            <a
+              className="emoji-link"
+              aria-label="Go to Chess Dashboard"
+              title="chess.com analytics"
+            >
+              ♟️
+            </a>
           </Link>
           <Link href="/pool-safety" passHref>
-            <a className="emoji-link" aria-label="Go to Pool Safety">🏊</a>
+            <a
+              className="emoji-link"
+              aria-label="Go to Pool Safety"
+              title="pool safety"
+            >
+              🏊
+            </a>
           </Link>
           <Link href="/songmatch" passHref>
-            <a className="emoji-link" aria-label="Go to Song Match">🎵</a>
+            <a
+              className="emoji-link"
+              aria-label="Go to Song Match"
+              title="song match"
+            >
+              🎵
+            </a>
           </Link>
         </div>
       </div>
@@ -37,12 +55,14 @@ export default function Home() {
         .emoji-link {
           font-size: 2rem;
           text-decoration: none;
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+          color: inherit;
         }
 
         .emoji-link:hover {
           transform: scale(1.2);
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          color: #0070f3; /* blue on hover */
         }
       `}</style>
     </div>

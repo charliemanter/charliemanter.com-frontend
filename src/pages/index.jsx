@@ -55,10 +55,9 @@ export default function Home() {
         }
 
         .emoji-link:hover {
-          transform: scale(1.2);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-          color: #0070f3;
-          background: yellow; /* 👈 easy to spot */
+          transform: scale(1.5) rotate(5deg);
+          color: #ff4081; /* bright pink for pop */
+          text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
         }
 
         @keyframes typing {

@@ -1,97 +1,98 @@
-// pages/chicago/itinerary.jsx
 import fs from 'fs'
 import path from 'path'
 import Papa from 'papaparse'
 import { useState, useEffect } from 'react'
 import { parse as parseDate, format as fmt, addDays } from 'date-fns'
+import styles from '../../styles/Itinerary.module.css'
 
 const START_DATE = '2025-06-22'
 
 export async function getStaticProps() {
-  const csv = fs.readFileSync(path.join(process.cwd(), 'data', 'Chicago_Trip_Itinerary.csv'), 'utf8')
+  const csv = fs.readFileSync(
+    path.join(process.cwd(), 'data', 'Chicago_Trip_Itinerary.csv'),
+    'utf8'
+  )
   const { data } = Papa.parse(csv, { header: true })
-  // group into an array of days 1–6
   const days = Array.from({ length: 6 }, (_, i) => {
-    const dayLabel = `Day ${i + 1}`
+    const label = `Day ${i+1}`
     const date = fmt(addDays(parseDate(START_DATE, 'yyyy-MM-dd', new Date()), i), 'MMMM d, yyyy')
-    const events = data.filter(r => Number(r.Day.replace('Day ', '')) === i + 1)
-    return { dayLabel, date, events }
+    return {
+      label,
+      date,
+      events: data.filter(r => Number(r.Day.replace('Day ', '')) === i+1),
+      // you could swap these out for real photos of each day’s main attraction:
+      bg: `/images/day${i+1}.jpg`
+    }
   })
   return { props: { days } }
 }
 
 export default function Itinerary({ days }) {
-  const [doneMap, setDoneMap] = useState({})
+  const [done, setDone] = useState({})
   useEffect(() => {
-    setDoneMap(JSON.parse(localStorage.getItem('itineraryDone') || '{}'))
+    setDone(JSON.parse(localStorage.getItem('itDone')||'{}'))
   }, [])
 
-  function toggleDone(key) {
-    const next = { ...doneMap, [key]: !doneMap[key] }
-    localStorage.setItem('itineraryDone', JSON.stringify(next))
-    setDoneMap(next)
+  const toggle = key => {
+    const next = { ...done, [key]: !done[key] }
+    localStorage.setItem('itDone', JSON.stringify(next))
+    setDone(next)
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      <h1 className="text-3xl font-bold text-center p-4">Chicago Trip Itinerary</h1>
-      <div className="flex-1 overflow-x-auto snap-x snap-mandatory flex">
-        {days.map(({ dayLabel, date, events }) => (
-          <section
-            key={dayLabel}
-            className="min-w-full snap-start flex-shrink-0 p-6 space-y-4"
-          >
-            <h2 className="text-2xl font-semibold">{dayLabel}: {date}</h2>
-            <div className="space-y-3">
-              {events.map((e,i) => {
-                const key = `${dayLabel}-${i}`
-                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.Activity + ' Chicago')}`
-                const [startStr, endStr] = (() => {
-                  const base = addDays(parseDate(START_DATE, 'yyyy-MM-dd', new Date()), Number(dayLabel.replace('Day ', '')) - 1)
-                  const [startT, endT] = e.Time.split('–').map(s=>s.trim())
-                  const dtStart = new Date(`${fmt(base,'yyyy-MM-dd')} ${startT}`)
-                  const dtEnd   = endT
-                    ? new Date(`${fmt(base,'yyyy-MM-dd')} ${endT}`)
-                    : new Date(dtStart.getTime() + 60*60*1000)
-                  const f = d => fmt(d, "yyyyMMdd'T'HHmmss'Z'")
-                  return [f(dtStart), f(dtEnd)]
-                })()
-                const calendarUrl = [
-                  'https://calendar.google.com/calendar/render?action=TEMPLATE',
-                  `&text=${encodeURIComponent(e.Activity)}`,
-                  `&dates=${startStr}/${endStr}`,
-                  `&details=${encodeURIComponent(e.Time)}`,
-                  `&location=Chicago`
-                ].join('')
+    <div className={styles.carousel}>
+      {days.map(({ label, date, events, bg }) => (
+        <section
+          key={label}
+          className={styles.day}
+          style={{ backgroundImage: `url(${bg})` }}
+        >
+          <div className={styles.overlay}/>
+          <div className={styles.content}>
+            <h2>{label}: {date}</h2>
+            {events.map((e,i) => {
+              const key = `${label}-${i}`
+              const maps = `https://google.com/maps/search/?api=1&query=${encodeURIComponent(e.Activity+' Chicago')}`
+              const [start, end] = (() => {
+                const base = addDays(parseDate(START_DATE,'yyyy-MM-dd',new Date()), Number(label.replace('Day ','') )-1)
+                const [s,t] = e.Time.split('–').map(s=>s.trim())
+                const ds = new Date(`${fmt(base,'yyyy-MM-dd')} ${s}`)
+                const de = t
+                  ? new Date(`${fmt(base,'yyyy-MM-dd')} ${t}`)
+                  : new Date(ds.getTime()+3600000)
+                const f = d => fmt(d,"yyyyMMdd'T'HHmmss'Z'")
+                return [f(ds), f(de)]
+              })()
+              const cal = [
+                'https://calendar.google.com/calendar/render?action=TEMPLATE',
+                `&text=${encodeURIComponent(e.Activity)}`,
+                `&dates=${start}/${end}`,
+                `&details=${encodeURIComponent(e.Time)}`,
+                `&location=Chicago`
+              ].join('')
 
-                return (
-                  <div
-                    key={key}
-                    className="border rounded-lg p-4 shadow flex flex-col justify-between h-40"
-                  >
-                    <div>
-                      <p className="font-medium">{e.Time}</p>
-                      <p className="text-lg">{e.Activity}</p>
-                    </div>
-                    <div className="mt-2 flex items-center space-x-3">
-                      <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="underline text-sm">🗺️ Map</a>
-                      <a href={calendarUrl} target="_blank" rel="noopener noreferrer" className="underline text-sm">➕ Calendar</a>
-                      <label className="flex items-center text-sm">
-                        <input
-                          type="checkbox"
-                          checked={!!doneMap[key]}
-                          onChange={() => toggleDone(key)}
-                        />
-                        <span className="ml-1">Done</span>
-                      </label>
-                    </div>
+              return (
+                <div key={key} className={styles.card}>
+                  <p><strong>{e.Time}</strong></p>
+                  <p>{e.Activity}</p>
+                  <div className={styles.actions}>
+                    <a href={maps} target="_blank">🗺️ Map</a>
+                    <a href={cal} target="_blank">➕ Calendar</a>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={!!done[key]}
+                        onChange={()=>toggle(key)}
+                      />
+                      Done
+                    </label>
                   </div>
-                )
-              })}
-            </div>
-          </section>
-        ))}
-      </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      ))}
     </div>
   )
 }

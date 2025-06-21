@@ -1,0 +1,65 @@
+/* container fills viewport, horizontal scroll with snap */
+.carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* each day takes full viewport and snaps into place */
+.day {
+  position: relative;
+  flex: 0 0 100vw;
+  scroll-snap-align: start;
+  background-size: cover;
+  background-position: center;
+}
+
+/* dark overlay so text pops on light/dark images */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* the white-blur cards */
+.content {
+  position: relative;
+  max-width: 600px;
+  margin: auto;
+  padding: 2rem;
+  color: #fff;
+  z-index: 1;
+}
+
+/* each event card */
+.card {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+}
+
+/* links + checkbox row */
+.actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  font-size: 0.9rem;
+}
+.actions a {
+  text-decoration: underline;
+  color: #fff;
+}
+.actions label {
+  display: flex;
+  align-items: center;
+}

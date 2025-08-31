@@ -197,16 +197,37 @@ export default function SongArenaPage() {
       </div>
 
       <style jsx global>{`
-        body { background:#121212; color:#fff; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif }
+        body {
+          background: #121212;
+          color: #ffffff;
+          font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        }
       `}</style>
       <style jsx>{`
-        .header { text-align:center; margin: 2rem 0 1rem; }
-        .header h1 { font-size: 2.2rem; color:#1DB954; margin:0; }
-        .matchup {
-          display:flex; align-items:flex-start; justify-content:center; gap:2rem; flex-wrap:wrap;
-          max-width: 1100px; margin: 0 auto; padding: 1rem;
+        .header {
+          text-align: center;
+          margin: 2rem 0 1rem;
         }
-        .vs { align-self:center; font-weight:700; color:#1DB954; }
+        .header h1 {
+          font-size: 2.2rem;
+          color: #1DB954;
+          margin: 0;
+        }
+        .matchup {
+          display: flex;
+          align-items: flex-start;
+          justify-content: center;
+          gap: 2rem;
+          flex-wrap: wrap;
+          max-width: 1100px;
+          margin: 0 auto;
+          padding: 1rem;
+        }
+        .vs {
+          align-self: center;
+          font-weight: 700;
+          color: #1DB954;
+        }
       `}</style>
     </Shell>
   );
@@ -217,7 +238,11 @@ function Shell({ children }) {
     <div className="page">
       {children}
       <style jsx>{`
-        .page { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+        .page {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 1.5rem;
+        }
       `}</style>
     </div>
   );
@@ -241,7 +266,7 @@ function SongCard({ song, onVote }) {
       <h2 className="title" title={title}>{title}</h2>
       <p className="artist" title={artist}>{artist}</p>
 
-      {/* 🔁 Replaced audio preview with YouTube embed of first “[artist] [song]” result */}
+      {/* YouTube embed of first “[artist] [song]” result */}
       <YouTubeEmbed query={query} />
 
       <button className="vote" onClick={onVote} aria-label={`Vote for ${title} by ${artist}`}>
@@ -250,9 +275,99 @@ function SongCard({ song, onVote }) {
 
       <style jsx>{`
         .card {
-          background:#181818; border:1px solid #2a2a2a; border-radius:12px;
-          width:320px; padding:1rem;
+          background: #181818;
+          border: 1px solid #2a2a2a;
+          border-radius: 12px;
+          width: 320px;
+          padding: 1rem;
         }
-        .art { border-radius:8px; object-fit:cover; }
+        .art {
+          border-radius: 8px;
+          object-fit: cover;
+        }
         .title {
-          margin: 0.75rem
+          margin: 0.75rem 0 0.25rem;
+          font-size: 1.1rem;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .artist {
+          margin: 0;
+          color: #b3b3b3;
+          font-size: 0.95rem;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .vote {
+          margin-top: 0.8rem;
+          width: 100%;
+          padding: 0.6rem 0.8rem;
+          border-radius: 10px;
+          border: 1px solid #2a2a2a;
+          background: #1DB954;
+          color: #000000;
+          font-weight: 700;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function YouTubeEmbed({ query }) {
+  const [videoId, setVideoId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!query) return;
+      try {
+        setLoading(true);
+        setErr('');
+        const r = await fetch(`/api/youtube-search?q=${encodeURIComponent(query)}`);
+        const data = await r.json();
+        if (!r.ok || !data?.videoId) throw new Error(data?.error || 'No result');
+        if (!cancelled) setVideoId(data.videoId);
+      } catch (e) {
+        if (!cancelled) setErr('No YouTube result found.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [query]);
+
+  if (!query) return null;
+  if (loading) return <div className="yt-status">Searching YouTube…</div>;
+  if (err) return <div className="yt-status">{err}</div>;
+  if (!videoId) return null;
+
+  return (
+    <div className="yt">
+      <iframe
+        width="100%"
+        height="180"
+        src={`https://www.youtube-nocookie.com/embed/${videoId}`}
+        title={query}
+        frameBorder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowFullScreen
+      />
+      <style jsx>{`
+        .yt {
+          margin-top: 0.75rem;
+        }
+        .yt-status {
+          margin-top: 0.75rem;
+          color: #b3b3b3;
+          font-size: 0.9rem;
+        }
+      `}</style>
+    </div>
+  );
+}

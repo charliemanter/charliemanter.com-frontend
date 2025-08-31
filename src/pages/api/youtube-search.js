@@ -1,5 +1,6 @@
 // src/pages/api/youtube-search.js
 import yts from 'yt-search';
+export const runtime = 'nodejs';
 
 let cache = new Map(); // tiny in-memory cache to cut repeat lookups
 

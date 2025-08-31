@@ -7,15 +7,9 @@ export default function Home() {
         <div className="typewriter">Charlie Manter</div>
 
         <div className="button-container">
-          <Link href="/chess-dash" passHref>
-            <a className="emoji-link" title="chess.com analytics">♟️</a>
-          </Link>
-          <Link href="/pool-safety" passHref>
-            <a className="emoji-link" title="pool safety">🏊</a>
-          </Link>
-          <Link href="/songmatch" passHref>
-            <a className="emoji-link" title="song match">🎵</a>
-          </Link>
+            <Link href="/chess-dash" className="emoji-link" title="chess.com analytics">♟️</Link>
+            <Link href="/pool-safety" className="emoji-link" title="pool safety">🏊</Link>
+            <Link href="/song-arena" className="emoji-link" title="song arena">🎵</Link>
         </div>
       </div>
 

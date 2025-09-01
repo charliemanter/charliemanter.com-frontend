@@ -80,150 +80,108 @@
 //     </main>
 //   );
 // }
-// src/pages/leaderboard.js
-import { useEffect, useState } from 'react';
-import Image from 'next/image';
-import Head from 'next/head';
-import { useRouter } from 'next/router';
+// /pages/leaderboard.js
+import { useEffect, useState, useMemo } from "react";
+import Head from "next/head";
+import Link from "next/link";
+import { useRouter } from "next/router";
 
 export default function LeaderboardPage() {
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState('');
   const router = useRouter();
+  const pageFromQuery = Number(router.query.page ?? 1);
+  const page = Number.isFinite(pageFromQuery) && pageFromQuery > 0 ? pageFromQuery : 1;
+
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState(null);
+  const pageSize = 25;
 
   useEffect(() => {
-    const ctrl = new AbortController();
-    (async () => {
+    let cancelled = false;
+    async function run() {
+      setLoading(true);
+      setErr(null);
       try {
-        const r = await fetch('/api/leaderboard?limit=100', { signal: ctrl.signal });
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const data = await r.json();
-        setRows(Array.isArray(data.rows) ? data.rows : []);
+        const res = await fetch(`/api/leaderboard?page=${page}&pageSize=${pageSize}`);
+        if (!res.ok) throw new Error(`Failed to load leaderboard (${res.status})`);
+        const json = await res.json();
+        if (!cancelled) setData(json);
       } catch (e) {
-        if (e.name !== 'AbortError') setErr('Could not load leaderboard.');
+        if (!cancelled) setErr(e.message ?? "Unknown error");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
-    })();
-    return () => ctrl.abort();
-  }, []);
+    }
+    run();
+    return () => { cancelled = true };
+  }, [page]);
 
-  const VoteAgainButton = (
-    <button
-      type="button"
-      onClick={() => router.push('/song-arena')}
-      className="rounded-2xl px-4 py-2 border shadow-sm hover:shadow transition"
-      aria-label="Vote again"
-    >
-      Vote again
-    </button>
-  );
+  const items = data?.items ?? [];
+  const title = useMemo(() => `Song Arena • Leaderboard (page ${page})`, [page]);
 
-  if (loading) {
-    return (
-      <main className="max-w-3xl mx-auto p-6">
-        <header className="flex items-center justify-between mb-4">
-          <h1 className="text-3xl font-bold">Leaderboard</h1>
-          {VoteAgainButton}
-        </header>
-        <div className="space-y-3">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="animate-pulse h-16 rounded-xl bg-gray-200/60" />
-          ))}
-        </div>
-      </main>
-    );
-  }
-
-  if (err) {
-    return (
-      <main className="max-w-3xl mx-auto p-6">
-        <header className="flex items-center justify-between mb-4">
-          <h1 className="text-3xl font-bold">Leaderboard</h1>
-          {VoteAgainButton}
-        </header>
-        <p className="text-sm text-red-600 mb-4">{err}</p>
-        <p className="text-sm text-gray-600">
-          Try casting a vote first, or refresh the page. If you’re on a serverless deploy, make sure your ratings store
-          is persistent (DB/KV) instead of in-memory.
-        </p>
-      </main>
-    );
-  }
-
-  if (rows.length === 0) {
-    return (
-      <main className="max-w-3xl mx-auto p-6">
-        <Head><title>Leaderboard • Song Arena</title></Head>
-        <header className="flex items-center justify-between mb-4">
-          <h1 className="text-3xl font-bold">Leaderboard</h1>
-          {VoteAgainButton}
-        </header>
-        <p className="text-sm text-gray-600 mb-6">No results yet. Cast a vote to get things started.</p>
-        {VoteAgainButton}
-      </main>
-    );
-  }
+  const handlePrev = () => {
+    if (page > 1) router.push({ pathname: "/leaderboard", query: { page: page - 1 } }, undefined, { shallow: true });
+  };
+  const handleNext = () => {
+    if (items.length === pageSize) {
+      router.push({ pathname: "/leaderboard", query: { page: page + 1 } }, undefined, { shallow: true });
+    }
+  };
 
   return (
-    <main className="max-w-3xl mx-auto p-6">
-      <Head><title>Leaderboard • Song Arena</title></Head>
+    <>
+      <Head>
+        <title>{title}</title>
+        <meta name="robots" content="noindex" />
+      </Head>
 
-      <header className="flex items-center justify-between mb-4">
-        <h1 className="text-3xl font-bold">Leaderboard</h1>
-        {VoteAgainButton}
-      </header>
+      <div className="min-h-screen bg-gray-50">
+        <header className="sticky top-0 bg-white border-b">
+          <div className="mx-auto max-w-6xl px-4 py-4 flex items-center justify-between">
+            <h1 className="text-xl font-semibold">Leaderboard</h1>
+            <Link href="/song-arena" className="px-4 py-2 rounded bg-black text-white">
+              Vote again
+            </Link>
+          </div>
+        </header>
 
-      <p className="text-sm text-gray-600 mb-6">
-        Ranked by ELO.
-      </p>
+        <main className="mx-auto max-w-6xl px-4 py-6">
+          {loading && <p>Loading…</p>}
+          {err && <p className="text-red-600">{err}</p>}
+          {!loading && !err && items.length === 0 && <p>No tracks ranked yet.</p>}
 
-      <ol className="space-y-3">
-        {rows.map((t, idx) => (
-          <li
-            key={t.id}
-            className="flex items-center gap-3 p-3 rounded-xl shadow-sm border"
-          >
-            <span className="w-8 text-right font-mono">{idx + 1}.</span>
+          {!loading && !err && items.length > 0 && (
+            <ul className="grid gap-4">
+              {items.map((t, idx) => (
+                <li key={t.trackId} className="p-4 bg-white rounded shadow">
+                  <div className="flex gap-4">
+                    {t.imageUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={t.imageUrl} alt="cover" className="h-16 w-16 object-cover rounded" />
+                    )}
+                    <div className="flex-1">
+                      <h3 className="font-semibold">{t.name}</h3>
+                      <p className="text-sm text-gray-600">{t.artist}</p>
+                      <p className="text-sm mt-1">
+                        ELO {Math.round(t.elo)} — {t.wins}–{t.losses} ({t.matches} matches)
+                      </p>
+                      {t.previewUrl && (
+                        <audio className="mt-2 w-full" src={t.previewUrl} controls preload="none" />
+                      )}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
 
-            {t.imageUrl ? (
-              <Image
-                src={t.imageUrl}
-                alt={t.name || 'cover'}
-                width={56}
-                height={56}
-                className="rounded-lg flex-shrink-0"
-              />
-            ) : (
-              <div className="w-[56px] h-[56px] rounded-lg bg-gray-200 flex-shrink-0" />
-            )}
-
-            <div className="flex-1 min-w-0">
-              <div className="font-semibold truncate">{t.name || 'Unknown track'}</div>
-              <div className="text-sm text-gray-600 truncate">{t.artist || 'Unknown artist'}</div>
-            </div>
-
-            <div className="text-right">
-              <div className="font-semibold">{t.rating}</div>
-              <div className="text-xs text-gray-600">
-                {t.wins ?? 0}–{t.losses ?? 0} ({t.games ?? 0})
-              </div>
-            </div>
-
-            {t.externalUrl ? (
-              <a
-                href={t.externalUrl}
-                className="ml-3 text-sm underline"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Open
-              </a>
-            ) : null}
-          </li>
-        ))}
-      </ol>
-    </main>
+          <div className="mt-8 flex justify-between">
+            <button onClick={handlePrev} disabled={page <= 1}>← Previous</button>
+            <span>Page {page}</span>
+            <button onClick={handleNext} disabled={items.length < pageSize}>Next →</button>
+          </div>
+        </main>
+      </div>
+    </>
   );
 }

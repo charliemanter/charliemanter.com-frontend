@@ -161,22 +161,39 @@ export default function SongArenaPage() {
 
   async function handleVote(winner, loser) {
     try {
-      const r = await fetch('/api/rank', {
+      setError('');
+    // IMPORTANT: switch to Supabase-backed API
+      const r = await fetch('/api/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ winner, loser }),
-      });
-      if (!r.ok) {
-        const data = await r.json().catch(() => ({}));
-        throw new Error(data?.error || 'Vote failed');
-      }
-      // Load a fresh matchup
-      fetchMatchup();
-    } catch (e) {
-      console.error(e);
-      setError(e.message || 'Vote failed');
-    }
+        body: JSON.stringify({ winner, loser })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data?.error || 'Vote failed');
+
+    // (optional) optimistic UI, show toast, etc.
+    await fetchMatchup(); // get next pairing
+  } catch (e) {
+    console.error('[song-arena] vote error', e);
+    setError(String(e.message || e));
   }
+}
+  //     const r = await fetch('/api/rank', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ winner, loser }),
+  //     });
+  //     if (!r.ok) {
+  //       const data = await r.json().catch(() => ({}));
+  //       throw new Error(data?.error || 'Vote failed');
+  //     }
+  //     // Load a fresh matchup
+  //     fetchMatchup();
+  //   } catch (e) {
+  //     console.error(e);
+  //     setError(e.message || 'Vote failed');
+  //   }
+  // }
 
   if (loading) return <Shell><p>Loading matchup…</p></Shell>;
   if (error) return <Shell><p style={{ color: '#f66' }}>{error}</p></Shell>;
